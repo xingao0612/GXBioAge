@@ -1,5 +1,5 @@
 # GXBioAge
-
+![](https://img.shields.io/badge/source%20code-support-blue) ![](https://img.shields.io/badge/R-package-green) <br>
 **GXBioAge** — *Gompertz-X Biological Age* (the suffix "X" denotes five
 clinical laboratory biomarkers used for model construction) — is a
 small R package that estimates biological age (BioAge) from a Gompertz
