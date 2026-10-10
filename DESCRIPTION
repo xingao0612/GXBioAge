@@ -1,0 +1,31 @@
+Package: GXBioAge
+Type: Package
+Title: Gompertz-X Biological Age from a Survival Model
+Version: 0.3.0
+Date: 2026-09-11
+Authors@R: person("Xin", "Gao", email = "gaoxin_0612@163.com",
+                  role = c("aut", "cre"),
+                  comment = c(ORCID = ""))
+Description: GXBioAge — Gompertz-X Biological Age (the suffix "X" denotes
+    five clinical laboratory biomarkers used for model construction) — is a
+    biological age (BioAge) estimator based on a Gompertz survival
+    regression trained on NHANES data. The model uses chronological age
+    plus five routine blood markers — Total Cholesterol (TC), C-Reactive
+    Protein (CRP), Platelet count (PLT), Creatinine (CREA) and White Blood
+    Cell count (WBC) — and returns both BioAge and the BioAge-to-
+    chronological age difference (BioAgeDiff). Provides four interfaces:
+    a single-subject calculator (\code{calc_bioage}), a data-frame batch
+    predictor (\code{predict_bioage}), a CSV/TSV file reader that
+    returns a results table (\code{predict_bioage_file}), and a set of
+    ggplot2-based batch-result visualisations
+    (\code{plot_bioage_cor}, \code{plot_bioage_diff}). Citation:
+    (Pending publication).
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 3.5.0)
+Imports: stats, utils, grDevices
+Suggests: ggplot2 (>= 3.4.0), MASS, patchwork, testthat (>= 3.0.0)
+RoxygenNote: 7.3.1
+URL: https://github.com/your-org/GXBioAge
+BugReports: https://github.com/your-org/GXBioAge/issues
