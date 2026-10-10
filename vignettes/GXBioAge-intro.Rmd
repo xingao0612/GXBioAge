@@ -1,0 +1,159 @@
+---
+title: "GXBioAge: Gompertz-X Biological Age from a Survival Model"
+author: "Xin Gao, PhD"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+vignette: >
+  %\VignetteIndexEntry{GXBioAge: Gompertz-X Biological Age from a Survival Model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Overview
+
+`GXBioAge` (Gompertz-X Biological Age; the suffix "X" denotes five
+clinical laboratory biomarkers used for model construction) estimates
+biological age (BioAge) from a Gompertz survival regression. The model
+was trained on NHANES data using chronological age and five routine
+blood markers.
+
+> **v0.3.0 note:** this release adds two ggplot2-based batch-result
+> visualisations — `plot_bioage_cor()` (a density-coloured scatter
+> of BioAge vs. chronological age with R / MAE / p-value annotation)
+> and `plot_bioage_diff()` (a two-panel BioAgeDiff diagnostic).
+> `predict_bioage_file()` now accepts a `plot_dir` argument that
+> dumps both PNGs into the chosen directory.
+>
+> **v0.2.0 note:** the previous release dropped the *Uric Acid (UA)*
+> marker that was used in v0.1.0; the model is now trained on five
+> markers (TC, CRP, PLT, CREA, WBC).
+
+## Installation
+
+```{r, eval = FALSE}
+# install.packages("devtools")
+devtools::install("path/to/GXBioAge")
+# The plotting functions need ggplot2 (+ MASS is recommended).
+install.packages(c("ggplot2", "MASS"))
+```
+
+## Usage
+
+### Single subject
+
+```{r}
+library(GXBioAge)
+calc_bioage(age = 55, TC = 5.1, CRP = 1.5,
+            PLT = 230, CREA = 0.85, WBC = 6.2)
+```
+
+### Batch on a data frame
+
+```{r}
+df <- data.frame(
+  ID   = c("S001", "S002", "S003"),
+  Age  = c(55, 65, 32),
+  TC   = c(5.1, 6.5, 4.2),
+  CRP  = c(1.5, 8.0, 0.5),
+  PLT  = c(230, 280, 220),
+  CREA = c(0.85, 1.40, 0.75),
+  WBC  = c(6.2, 9.5, 5.4)
+)
+predict_bioage(df)
+```
+
+### Read CSV / write results
+
+```{r, eval = FALSE}
+predict_bioage_file(
+  system.file("extdata", "example_input.csv", package = "GXBioAge"),
+  out = "results.csv"
+)
+```
+
+### Batch visualisations
+
+`plot_bioage_cor()` draws a density-coloured scatter of BioAge vs.
+chronological age with a linear regression overlay and a labelled
+annotation box reporting Pearson's R, the mean absolute error
+(MAE) and the p-value:
+
+```{r, eval = requireNamespace("ggplot2", quietly = TRUE) && requireNamespace("MASS", quietly = TRUE)}
+big <- data.frame(
+  Age  = c(55, 65, 32, 50, 72, 45, 60, 38, 80, 28,
+           58, 47, 68, 41, 75, 53, 36, 62, 49, 70),
+  TC   = c(5.1, 6.5, 4.2, 5.2, 5.8, 4.8, 5.5, 4.5, 6.0, 4.0,
+           5.4, 4.9, 5.7, 4.6, 5.9, 5.0, 4.3, 5.6, 5.0, 5.8),
+  CRP  = c(1.5, 8.0, 0.5, 2.4, 3.0, 1.0, 2.0, 0.8, 4.0, 0.4,
+           1.8, 1.2, 3.5, 0.6, 3.2, 1.6, 0.5, 2.6, 1.0, 3.8),
+  PLT  = c(230, 280, 220, 240, 260, 235, 250, 225, 270, 215,
+           245, 230, 275, 220, 265, 240, 220, 255, 235, 268),
+  CREA = c(0.85, 1.40, 0.75, 0.90, 1.10, 0.80, 0.95, 0.78, 1.20, 0.72,
+           0.92, 0.82, 1.15, 0.76, 1.18, 0.88, 0.74, 1.05, 0.83, 1.22),
+  WBC  = c(6.2, 9.5, 5.4, 7.0, 7.8, 6.0, 6.8, 5.8, 8.2, 5.2,
+           6.6, 6.0, 8.0, 5.6, 7.6, 6.4, 5.4, 7.2, 6.0, 8.4)
+)
+res <- predict_bioage(big, keep = TRUE)
+plot_bioage_cor(res)
+```
+
+`plot_bioage_diff()` adds a one-page BioAgeDiff diagnostic
+(histogram + Bland-Altman-style scatter) so the calibration of
+the model against chronological age is easy to inspect:
+
+```{r, eval = requireNamespace("ggplot2", quietly = TRUE)}
+plot_bioage_diff(res)
+```
+
+Both plots can also be requested directly from
+`predict_bioage_file()` via the `plot_dir` argument:
+
+```{r, eval = FALSE}
+predict_bioage_file(
+  system.file("extdata", "example_input.csv", package = "GXBioAge"),
+  out      = "results.csv",
+  plot_dir = "plots"
+)
+```
+
+## Model
+
+For any individual,
+
+```
+BioAge = ( β_age · Age + Σ βᵢ · Xᵢ + log(γ₂/γ₁) ) / β_age
+```
+
+where β_age comes from an age-only Gompertz model, βᵢ are marker
+coefficients from a model on Age + markers, and the age coefficient
+in the marker model is constrained to equal β_age. The term
+log(γ₂/γ₁) absorbs the difference in baseline rates between the
+two models.
+
+A positive `BioAgeDiff` indicates that the blood-marker profile
+carries excess mortality risk relative to peers of the same
+chronological age — i.e. *accelerated biological aging*.
+
+## Units
+
+Input units must match the training units:
+
+| Variable | Unit |
+|---|---|
+| Age  | years |
+| TC   | mmol/L |
+| CRP  | mg/L |
+| PLT  | 10⁹/L |
+| CREA | mg/dL |
+| WBC  | 10⁹/L |
+
+## Citation
+
+*(Pending publication)*

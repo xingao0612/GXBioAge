@@ -15,6 +15,17 @@ chronological age plus five routine blood markers:
 | CREA — Creatinine | mg/dL |
 | WBC — White Blood Cell count | 10⁹/L |
 
+> **v0.3.0 note:** this release adds two ggplot2-based batch-result
+> visualisations — `plot_bioage_cor()` (a density-coloured scatter
+> of BioAge vs. chronological age with R / MAE / p-value annotation)
+> and `plot_bioage_diff()` (a two-panel BioAgeDiff diagnostic).
+> `predict_bioage_file()` now accepts a `plot_dir` argument that
+> dumps both PNGs into the chosen directory.
+>
+> **v0.2.0 note:** this release dropped the *Uric Acid (UA)* marker
+> that was used in v0.1.0; the model is now trained on five markers.
+> If you have v0.1.0 input data with a `UA` column, simply drop it
+> before calling `predict_bioage()`.
 
 ## Installation
 
